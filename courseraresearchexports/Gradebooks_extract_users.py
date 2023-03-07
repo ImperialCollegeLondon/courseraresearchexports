@@ -10,13 +10,13 @@ import glob
 # define where gradebook files are being picked up from and filtered 3 year cohort is being outputted
 gradebooks_input_file_location = r"C:\Users\rantonyv\Box\DLH Data\Coursera_gradebooks"
 gradebooks_output_file_location = r"C:\Users\rantonyv\Box\DLH Data\Coursera_gradebooks\gradebooks"
-combined_gradebooks_output_file_location = r"C:\Users\rantonyv\Box\DLH Data\Coursera_gradebooks\gradebooks\Combined_gradebooks"
+combined_gradebooks_output_file_location = r"C:\Users\rantonyv\Box\DLH Data\Coursera_gradebooks\Combined_gradebooks"
 duplicates_gradebooks_output_file_location = r"C:\Users\rantonyv\Box\DLH Data\Coursera_gradebooks\Duplicates_gradebooks"
 
 # read gradebooks
 # assign academic_start_date
 # move files from the last 3 years for courses files including EPI, FPHP, GDM, GHI, HSD, IDM, STATS
-dashboard_files = ('epi', 'fphp', 'gdm', 'ghi', 'hsd', 'idm', 'stats', 'rp1', 'rp2', 'rp3')
+dashboard_files = ('epi', 'fphp', 'stats', 'gdm', 'ghi', 'hsd', 'idm', 'phi', 'hp', 'he', 'ghcg', 'dh', 'lcph', 'quality-improvement-in-healthcare', 'rp1', 'rp2', 'rp3', 'research-portfolio-4')
 
 # Check all files by Tern_ID
 # if term_id is within last 3 years, pull file across
@@ -82,14 +82,41 @@ combined_gradebook = pd.DataFrame(columns=['Anonymized Coursera ID', 'External C
 
 for n in dashboard_files:
     for file in glob.glob(gradebooks_output_file_location + "\\" + n + "-*.csv"):
-        file_df = pd.read_csv(file, converters={'Student ID': str,'Anonymized Coursera ID': str, 'External Course ID' : str, 'External Student ID': str})
-        file_df = file_df.iloc[:, :8]
-
+        if n != 'stats':
+            file_df = pd.read_csv(file, converters={'Student ID': str,'Anonymized Coursera ID': str, 'External Course ID' : str, 'External Student ID': str})
+            file_df = file_df.iloc[:, :8]
+        else:
+            break
         combined_gradebook = combined_gradebook.append(file_df)
         duplicate_gradebook_entries = combined_gradebook[combined_gradebook.duplicated()]
     combined_gradebook = combined_gradebook.drop_duplicates(keep='first')
     combined_gradebook.to_csv(combined_gradebooks_output_file_location + "\\" + str(n) + "_gmph.csv", index=False)
     duplicate_gradebook_entries.to_csv(duplicates_gradebooks_output_file_location + "\\" + str(n) + "_gmph_duplicates.csv", index=False)
 
-# TO CHECK: Which of all of these files need importing into dashboard
-# use coursera_id as imperial_user_id
+
+# stats file requires extra columns, therefore is written as separate for loop
+stats_list = []
+for file in glob.glob(gradebooks_output_file_location + "\\" + 'stats' + "-*.csv"):
+    file_df = pd.read_csv(file, converters={'Student ID': str, 'Anonymized Coursera ID': str,
+                                            'External Course ID': str, 'External Student ID': str})
+    stats_list.append(file_df)
+
+file_df = pd.concat(stats_list, axis=0, ignore_index=False)
+stats_columns = []
+for col in file_df.columns:
+    if 'Graded Assignment Group Grade' in col:
+        stats_columns.append(col)
+
+columns = ['Anonymized Coursera ID', 'External Course ID', 'Term ID', 'External Student ID', 'First Name', 'Last Name', 'Email', 'Student ID']
+columns = columns + stats_columns
+combined_gradebook = pd.DataFrame(columns = columns)
+file_df = file_df[file_df.columns & columns]
+
+combined_gradebook = combined_gradebook.append(file_df)
+duplicate_gradebook_entries = combined_gradebook[combined_gradebook.duplicated(subset='Student ID')]
+#combined_gradebook.sort_values['Anonymized Coursera ID']
+
+combined_gradebook = combined_gradebook.drop_duplicates(subset=['Anonymized Coursera ID','Email', 'Student ID'], keep ='first')
+#combined_gradebook = combined_gradebook.drop_duplicates(keep='first')
+combined_gradebook.to_csv(combined_gradebooks_output_file_location + "\\" + 'stats' + "_gmph.csv", index=False)
+duplicate_gradebook_entries.to_csv(duplicates_gradebooks_output_file_location + "\\" + 'stats' + "_gmph_duplicates.csv", index=False)

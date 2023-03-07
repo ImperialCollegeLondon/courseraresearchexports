@@ -14,14 +14,15 @@ result = lines[0]
 request_id = (result[-12:])[:10]
 
 # Running job with request_id
+destination_folder = r"C:\Users\rantonyv\PycharmProjects\courseraresearchexports\data_export"
 try:
-    result = subprocess.check_output(["courseraresearchexports","jobs","download",request_id], shell=True)
+    result = subprocess.check_output(["courseraresearchexports","jobs","download","--dest",destination_folder,request_id], shell=True)
     print result
 except subprocess.CalledProcessError:
     print 'Job not achieved'
 
 # unzip contents of download
-dir_name = r'C:\Users\rantonyv\PycharmProjects\courseraresearchexports'
+dir_name = r'C:\Users\rantonyv\PycharmProjects\courseraresearchexports\data_export'
 output_folder = r'C:\Users\rantonyv\PycharmProjects\courseraresearchexports\data_export'
 extension = ".zip"
 
@@ -31,5 +32,5 @@ for item in os.listdir(dir_name): # loop through items in dir
     if item.endswith(extension): # check for ".zip" extension
         file_name = os.path.abspath(item) # get full path of files
         zip_ref = zipfile.ZipFile(file_name) # create zipfile object
-        zip_ref.extractall(dir_name) # extract file to dir
+        zip_ref.extractall(output_folder) # extract file to dir
         zip_ref.close() # close file

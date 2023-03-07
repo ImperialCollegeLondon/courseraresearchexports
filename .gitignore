@@ -98,3 +98,7 @@ test.txt
 courseraresearchexports/imperial_1675938524834.zip
 courseraresearchexports/request_id.txt
 New Compressed (zipped) Folder.zip
+*.html
+*.csv
+courseraresearchexports/list_imperial_user_ids.py
+data_export/imperial_1676918265836.zip

@@ -1,8 +1,20 @@
 import pandas as pd
-
+import csv
+import os
 # setup locations
 input_file_location = r"C:\Users\rantonyv\Documents\GMPH Coursera\imperial_1669376997496"
 output_file_location = "C:\\Users\\rantonyv\\Documents\\GMPH Coursera\\imperial_1669376997496_new\\"
+combined_gradebooks_output_file_location = r"C:\Users\rantonyv\Box\DLH Data\Coursera_gradebooks\Combined_gradebooks"
+
+# read each file in grades_output
+# pull anonymized_cousera_id
+# append column into one list
+imperial_course_user_ids = []
+for file in os.listdir(combined_gradebooks_output_file_location):
+ df = pd.read_csv(combined_gradebooks_output_file_location + '\\' + file)
+ anonymized_coursera_ids = df['Anonymized Coursera ID'].values.tolist()
+ imperial_course_user_ids = imperial_course_user_ids + anonymized_coursera_ids
+
 
 # assign dataframe for all relevant GMPH dashboard files
 # assessment data not included in here
@@ -46,12 +58,8 @@ for file in file_list:
 
     df_dict[file] = pd.read_csv(input_file_location + "\\" + file + ".csv", sep='delimiter')
 
-    print file
-    print df_dict[file]
     if 'imperial_user_id' in df_dict[file].columns:
-        if df_dict[file]['imperial_user_id'] ==
-print df_dict['users_courses__degree_program_memberships']
-
+        df_dict[file] = df_dict[file][df_dict[file]['imperial_user_id'].isin(imperial_course_user_ids)]
 
 
 # transform feedback_course_comments
@@ -75,12 +83,14 @@ feedback_course_comments = pd.read_csv(input_file_location + "\\feedback_course_
 #feedback_course_comments.to_csv("C:\\Users\\rantonyv\\Documents\\GMPH Coursera\\imperial_1669376997496_new\\feedback_course_comments.csv", index = False)
 # feedback_item_comments file handled in PBI dashboard, this can be moved straight into relevant directory
 
-strip all course_ids that aren't GMPH
-users_courses__degree_program_memberships = dataframe_dict[users_courses__degree_program_memberships].loc[dataframe_dict[users_courses__degree_program_memberships]["degree_program_name"] == "Global Master of Public Health"]
+# strip all course_ids that aren't GMPH
+df_dict['users_courses__degree_program_memberships'] = df_dict['users_courses__degree_program_memberships'].loc[df_dict['users_courses__degree_program_memberships']["degree_program_name"] == "Global Master of Public Health"]
+
+df_dict['courses'] = df_dict['courses'][df_dict['courses']['course_id'].isin(df_dict['users_courses__degree_program_memberships']['course_id'])]
 
 
 
-create imperial_course_user_id table
+# create imperial_course_user_id table
 imperial_course_user_ids = pd.read_csv(input_file_location + "imperial__idm_2_user_ids.csv")
 
 course_user_ids_dataframes = {}
@@ -199,5 +209,5 @@ imperial_course_user_ids.to_csv(
 
 
 #output all dataframes to sensible location
-for dataframe in dataframe_dict:
-   dataframe_dict[dataframe].to_csv(output_file_location + "\\" + str(dataframe)+ '.csv')
+for dataframe in df_dict:
+   df_dict[dataframe].to_csv(output_file_location + "\\" + str(dataframe)+ '.csv')
